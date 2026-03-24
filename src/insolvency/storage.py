@@ -28,12 +28,19 @@ class CaseStorage:
 
     def load(self, reference: str) -> InsolvencyCase:
         path = self.case_path(reference)
+        if not path.exists():
+            raise FileNotFoundError(f"Kein Fall mit Aktenzeichen '{reference}' gefunden.")
         with path.open("r", encoding="utf-8") as handle:
             data = json.load(handle)
         return InsolvencyCase.from_dict(data)
 
     def list_cases(self) -> List[str]:
-        return [path.stem for path in sorted(self.directory.glob("*.json"))]
+        references: List[str] = []
+        for path in sorted(self.directory.glob("*.json")):
+            with path.open("r", encoding="utf-8") as handle:
+                data = json.load(handle)
+            references.append(str(data.get("reference", path.stem)))
+        return references
 
     def delete(self, reference: str) -> None:
         path = self.case_path(reference)

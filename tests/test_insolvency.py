@@ -3,6 +3,9 @@ from __future__ import annotations
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+import pytest
+
+from insolvency.cli import main
 from insolvency.models import Claim, Creditor, Debtor, InsolvencyCase, PaymentRecord, ProcedurePhase
 from insolvency.planner import PaymentPlanner
 from insolvency.storage import CaseStorage
@@ -86,3 +89,21 @@ def test_duplicate_claim_reference_is_rejected() -> None:
         assert "existiert bereits" in str(exc)
     else:
         raise AssertionError("duplicate claim should fail")
+
+
+def test_list_cases_keeps_original_reference(tmp_path: Path) -> None:
+    storage = CaseStorage(tmp_path)
+    case = build_case()
+    case.reference = "AZ 26/1"
+
+    storage.save(case)
+
+    assert storage.list_cases() == ["AZ 26/1"]
+
+
+def test_cli_returns_readable_error_for_missing_case(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as exc:
+        main(["--storage", str(tmp_path), "summary", "UNBEKANNT"])
+    assert exc.value.code == 2
+    captured = capsys.readouterr()
+    assert "Kein Fall mit Aktenzeichen" in captured.err

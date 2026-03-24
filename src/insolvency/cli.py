@@ -210,26 +210,29 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
     storage = CaseStorage(args.storage)
 
-    if args.command == "create-case":
-        handle_create_case(args, storage)
-    elif args.command == "add-claim":
-        handle_add_claim(args, storage)
-    elif args.command == "list":
-        handle_list(storage)
-    elif args.command == "summary":
-        handle_summary(args, storage)
-    elif args.command == "advance":
-        handle_advance(args, storage)
-    elif args.command == "record-payment":
-        handle_payment(args, storage)
-    elif args.command == "plan":
-        handle_plan(args, storage)
-    elif args.command == "export":
-        handle_export(args, storage)
-    elif args.command == "delete":
-        handle_delete(args, storage)
-    else:  # pragma: no cover - Absicherung gegen neue Commands ohne Handler
-        parser.error(f"Unbekanntes Kommando: {args.command}")
+    try:
+        if args.command == "create-case":
+            handle_create_case(args, storage)
+        elif args.command == "add-claim":
+            handle_add_claim(args, storage)
+        elif args.command == "list":
+            handle_list(storage)
+        elif args.command == "summary":
+            handle_summary(args, storage)
+        elif args.command == "advance":
+            handle_advance(args, storage)
+        elif args.command == "record-payment":
+            handle_payment(args, storage)
+        elif args.command == "plan":
+            handle_plan(args, storage)
+        elif args.command == "export":
+            handle_export(args, storage)
+        elif args.command == "delete":
+            handle_delete(args, storage)
+        else:  # pragma: no cover - Absicherung gegen neue Commands ohne Handler
+            parser.error(f"Unbekanntes Kommando: {args.command}")
+    except (FileNotFoundError, ValueError) as exc:
+        parser.exit(2, f"Fehler: {exc}\n")
 
 
 if __name__ == "__main__":  # pragma: no cover - direkter CLI Aufruf
